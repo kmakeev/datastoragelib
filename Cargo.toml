@@ -1,0 +1,22 @@
+[package]
+name = "datastorage"
+version = "0.1.0"
+authors = ["kmakeev <kmakeev@arbitr.ru>"]
+edition = "2018"
+
+[dependencies]
+
+[dependencies.pyo3]
+version = "0.8.4"
+features = ["extension-module"]
+
+[profile.dev]
+debug = true
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+
+[lib]
+name = "datastorage_lib"
+crate-type = ["cdylib"]
