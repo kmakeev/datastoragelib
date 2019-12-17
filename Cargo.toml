@@ -5,6 +5,7 @@ authors = ["kmakeev <kmakeev@arbitr.ru>"]
 edition = "2018"
 
 [dependencies]
+rand = "0.7.2"
 
 [dependencies.pyo3]
 version = "0.8.4"
