@@ -63,3 +63,12 @@ class TestDatastoragelib:
         assert (ds.indices[0] == 0)
         ds._get_valid_indices()
         assert (ds.indices[0] != 0)
+
+    def test_get_minibatch(self):
+        BS = 32
+        ds = DataStorage(size=1000000, frame_height=84, frame_width=84, agent_history_length=4, batch_size=BS)
+        list = [[127 for x in range(120)] for y in range(120)]
+        for i in range(900):
+            ds.add_experience(1, list, 1, False)
+        s, a, r, s_, t = ds.get_minibatch()
+        assert (len(s) == len(a) == len(r) == len(s_) == len(t) == BS)

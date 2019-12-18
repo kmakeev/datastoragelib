@@ -6,7 +6,8 @@ use pyo3::types::{PyDict, PyTuple};
 use std::cmp;
 use rand::Rng;
 
-
+type Matrix = Vec<Vec<Vec<u8>>>;
+type BatchMatrix = Vec<Vec<Vec<Vec<u8>>>>;
 
 #[pyclass(module= "datastorage_lib")]
 pub struct DataStorage {
@@ -31,15 +32,15 @@ pub struct DataStorage {
     #[pyo3(get)]
     pub rewards: Vec<i32>,
     #[pyo3(get)]
-    pub frames: Vec<Vec<Vec<u8>>>,
+    pub frames: Matrix,
     #[pyo3(get)]
     pub terminal_flags: Vec<bool>,
     #[pyo3(get)]
     pub indices: Vec<usize>,
     #[pyo3(get)]
-    pub states: Vec<Vec<Vec<Vec<u8>>>>,
+    pub states: BatchMatrix,
     #[pyo3(get)]
-    pub new_states: Vec<Vec<Vec<Vec<u8>>>>,
+    pub new_states: BatchMatrix,
 }
 
 #[pymethods]
@@ -91,7 +92,7 @@ impl DataStorage {
         }
     }
 
-    fn _get_state(& self, index: usize) -> PyResult<Vec<Vec<Vec<u8>>>> {
+    fn _get_state(& self, index: usize) -> PyResult<Matrix> {
         if self.count == 0 {
             Err(exceptions::ValueError::py_err("The storage data is empty"))
         } else if index < self.agent_history_length - 1 {
@@ -122,7 +123,11 @@ impl DataStorage {
         }
     }
 
-    fn get_minibatch(& mut self) -> PyResult<Vec<Vec<Vec<Vec<u8>>>>> {
+    fn get_minibatch(& mut self) -> PyResult<(BatchMatrix, Vec<i32>, Vec<i32>, BatchMatrix, Vec<bool>)> {
+        let mut actions = vec![];
+        let mut rewards = vec![];
+        let mut terminal_flags = vec![];
+
         if self.count < self.agent_history_length {
             Err(exceptions::ValueError::py_err("Not enough data in the storage to get a minibatch"))
         } else {
@@ -145,9 +150,12 @@ impl DataStorage {
                         self.new_states[i] = t;
                     }
                 }
+                // println!("Step - {}, action - {}", i, self.actions[*idx]);
+                actions.push(self.actions[*idx]);
+                rewards.push(self.rewards[*idx]);
+                terminal_flags.push(self.terminal_flags[*idx]);
             }
-
-            Ok(self.states.to_vec())
+            Ok(((self.states.to_vec(), actions, rewards, self.new_states.to_vec(), terminal_flags)))
         }
     }
 }
