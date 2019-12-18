@@ -86,7 +86,7 @@ impl DataStorage {
             self.frames[self.current] = frame;
             self.rewards[self.current] = reward;
             self.terminal_flags[self.current] = terminal;
-            self.count = cmp::max(self.count, self.current +1);
+            self.count = cmp::max(self.count, self.current + 1);
             self.current = (self.current + 1) % self.size as usize;
             Ok(())
         }
@@ -95,10 +95,10 @@ impl DataStorage {
     fn _get_state(& self, index: usize) -> PyResult<Matrix> {
         if self.count == 0 {
             Err(exceptions::ValueError::py_err("The storage data is empty"))
-        } else if index < self.agent_history_length - 1 {
+        } else if index < (self.agent_history_length - 1) {
             Err(exceptions::ValueError::py_err(format!("Index must be min {}", self.agent_history_length -1)))
         } else {
-            let frame = & self.frames[index - self.agent_history_length+1..index+1];
+            let frame = & self.frames[index + 1 - self.agent_history_length..index+1];
             Ok(frame.to_vec())
         }
     }
