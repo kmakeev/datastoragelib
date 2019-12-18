@@ -2,7 +2,7 @@ extern crate pyo3;
 extern crate rand;
 use pyo3::prelude::*;
 use pyo3::exceptions;
-use pyo3::types::{PyDict, PyTuple};
+use pyo3::types::{PyDict};
 use std::cmp;
 use rand::Rng;
 
@@ -47,14 +47,14 @@ pub struct DataStorage {
 impl DataStorage {
     #[new]
     #[args(size=100000, is_visual=true, frame_height=84, frame_width=84, agent_history_length=4, batch_size=4, kwargs="**")]
-    pub fn new(obj: &PyRawObject, size: usize, is_visual: bool, frame_height: usize, frame_width: usize, agent_history_length: usize, batch_size: usize, kwargs: Option<&PyDict>){
-        let mut actions = vec![0; size];
-        let mut rewards = vec![0; size];
-        let mut frames = vec![vec![vec![0; frame_width as usize]; frame_height as usize]; size];
-        let mut terminal_flags = vec![false; size];
-        let mut indices = vec![0; batch_size];
-        let mut states = vec![vec![vec![vec![0; frame_width as usize]; frame_height as usize]; agent_history_length]; batch_size];
-        let mut new_states = vec![vec![vec![vec![0; frame_width as usize]; frame_height as usize]; agent_history_length]; batch_size];
+    pub fn new(obj: &PyRawObject, size: usize, is_visual: bool, frame_height: usize, frame_width: usize, agent_history_length: usize, batch_size: usize, _kwargs: Option<&PyDict>){
+        let actions = vec![0; size];
+        let rewards = vec![0; size];
+        let frames = vec![vec![vec![0; frame_width as usize]; frame_height as usize]; size];
+        let terminal_flags = vec![false; size];
+        let indices = vec![0; batch_size];
+        let states = vec![vec![vec![vec![0; frame_width as usize]; frame_height as usize]; agent_history_length]; batch_size];
+        let new_states = vec![vec![vec![vec![0; frame_width as usize]; frame_height as usize]; agent_history_length]; batch_size];
         obj.init(DataStorage{
             size: size as u32,
             is_visual: is_visual,
@@ -135,7 +135,7 @@ impl DataStorage {
             for (i, idx) in self.indices.iter().enumerate() {
 
                 match self._get_state(*idx-1) {
-                    Err(err) => {
+                    Err(_err) => {
                         println!("Error retrieving data in the storage to get a minibatch");
                     },
                     Ok(t) => {
@@ -143,7 +143,7 @@ impl DataStorage {
                     }
                 }
                 match self._get_state(*idx) {
-                    Err(err) => {
+                    Err(_err) => {
                         println!("Error retrieving data in the storage to get a minibatch");
                     },
                     Ok(t) => {
@@ -155,7 +155,7 @@ impl DataStorage {
                 rewards.push(self.rewards[*idx]);
                 terminal_flags.push(self.terminal_flags[*idx]);
             }
-            Ok(((self.states.to_vec(), actions, rewards, self.new_states.to_vec(), terminal_flags)))
+            Ok((self.states.to_vec(), actions, rewards, self.new_states.to_vec(), terminal_flags))
         }
     }
 }
