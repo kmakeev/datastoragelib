@@ -1,10 +1,12 @@
 extern crate pyo3;
 extern crate rand;
+extern crate rayon;
 use pyo3::prelude::*;
 use pyo3::exceptions;
 use pyo3::types::{PyDict};
 use std::cmp;
 use rand::Rng;
+use rayon::prelude::*;
 
 type Matrix = Vec<Vec<Vec<u8>>>;
 type BatchMatrix = Vec<Vec<Vec<Vec<u8>>>>;
@@ -104,9 +106,12 @@ impl DataStorage {
     }
 
     fn _get_valid_indices(& mut self) {
-        for i in 0..self.batch_size {
-            let mut index: usize = 0;
-            while true {
+        // let range = std::ops::Range {start: 0, end: self.batch_size as u32};
+        let range = vec![0; self.batch_size];
+        let mut result: Vec<usize> = vec![];
+        range.par_iter().map (|_i| {
+            let mut index;
+            loop {
                 index = rand::thread_rng().gen_range(self.agent_history_length, self.count -1);
                 if index < self.agent_history_length {
                     continue;
@@ -119,8 +124,10 @@ impl DataStorage {
                 }
                 break;
             }
-            self.indices[i] = index;
-        }
+            index
+        }).collect_into_vec(& mut result);
+        self.indices = result;
+
     }
 
     fn get_minibatch(& mut self) -> PyResult<(BatchMatrix, Vec<i32>, Vec<i32>, BatchMatrix, Vec<bool>)> {
