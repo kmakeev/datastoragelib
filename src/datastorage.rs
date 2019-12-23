@@ -7,7 +7,7 @@ use pyo3::types::{PyDict};
 use std::cmp;
 use rand::Rng;
 use rayon::prelude::*;
-use ndarray::{Array1, Array3, Array4};
+use ndarray::{Array1, Array4};
 use numpy::{IntoPyArray, PyArray1, PyArray4};
 
 // type Matrix = Vec<Vec<Vec<u8>>>;
@@ -103,7 +103,7 @@ impl DataStorage {
             Err(exceptions::ValueError::py_err(msg))
         } else {
             self.actions[self.current] = action;
-            self.frames[self.current] = frame.concat();
+            self.frames[self.current] = frame.par_iter().flat_map(|_i| _i.clone()).collect();
             self.rewards[self.current] = reward;
             self.terminal_flags[self.current] = terminal;
             self.count = cmp::max(self.count, self.current + 1);
@@ -155,8 +155,8 @@ impl DataStorage {
             let st = Array4::from_shape_vec(self.shape, states).unwrap();
             let new_st = Array4::from_shape_vec(self.shape, new_states).unwrap();
 
-            Ok((st.into_pyarray(_py).to_owned(), Array1::from(actions).into_pyarray(_py).to_owned(),  Array1::from(rewards).into_pyarray(_py).to_owned(),
-                new_st.into_pyarray(_py).to_owned(), Array1::from(terminal_flags).into_pyarray(_py).to_owned()))
+            Ok((st.permuted_axes([0, 2, 3, 1]).into_pyarray(_py).to_owned(), Array1::from(actions).into_pyarray(_py).to_owned(),  Array1::from(rewards).into_pyarray(_py).to_owned(),
+                new_st.permuted_axes([0, 2, 3, 1]).into_pyarray(_py).to_owned(), Array1::from(terminal_flags).into_pyarray(_py).to_owned()))
         }
     }
 }
