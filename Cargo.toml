@@ -7,6 +7,8 @@ edition = "2018"
 [dependencies]
 rand = "0.7.2"
 rayon = "1.2.1"
+ndarray = "0.13"
+numpy = "0.7.0"
 
 [dependencies.pyo3]
 version = "0.8.4"
